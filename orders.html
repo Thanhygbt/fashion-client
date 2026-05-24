@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8">
+  <title>LMN | Lịch Sử Đơn Hàng</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light sticky-top bg-white border-bottom">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">LMN</a>
+      <button class="navbar-toggler outline-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="bi bi-list fs-2"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <div class="d-flex align-items-center gap-3 ms-auto mt-3 mt-lg-0">
+          <div class="position-relative d-none d-md-block">
+            <input type="text" class="form-control form-control-sm border-dark rounded-pill ps-3 pe-4" placeholder="Tìm kiếm..." id="search-input" style="width: 180px; font-size: 0.9rem;">
+            <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-2 text-muted" style="cursor: pointer;" id="search-btn"></i>
+          </div>
+          <a href="cart.html" class="nav-link p-0 position-relative" title="Giỏ Hàng">
+            <i class="bi bi-bag fs-5"></i>
+            <span id="cart-count" class="position-absolute translate-middle-y translate-middle-x badge rounded-pill bg-black text-white p-1" style="font-size: 0.6rem; top: 0;">0</span>
+          </a>
+          <a href="orders.html" class="nav-link p-0 d-none" id="order-link-btn" title="Đơn Hàng"><i class="bi bi-box fs-5"></i></a>
+          <a href="login.html" class="nav-link p-0" title="Tài khoản"><i class="bi bi-person fs-5"></i></a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-5 mt-5">
+    <h1 class="fw-black text-uppercase text-center mb-5 letter-spacing-5">Lịch Sử Đơn Hàng</h1>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div id="order-list-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="orderDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content shadow-lg border-0 rounded-0">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-black text-uppercase fs-3">Chi Tiết Đơn Hàng</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4 pt-1">
+          <div id="order-detail-content"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // API_BASE_URL is now available from app.js
+
+    function getUser() {
+      if (typeof window.getAuthUser === "function") {
+        return window.getAuthUser();
+      }
+
+      const raw = localStorage.getItem("user");
+      return raw ? JSON.parse(raw) : null;
+    }
+
+    function getToken() {
+      if (typeof window.getStoredToken === "function") {
+        return window.getStoredToken();
+      }
+
+      return localStorage.getItem("token");
+    }
+
+    function clearSessionAndRedirectToLogin() {
+      if (typeof window.clearAuthSession === "function") {
+        window.clearAuthSession();
+      } else {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
+      window.location.href = "login.html";
+    }
+
+    function formatCurrency(value) {
+      return `${Number(value || 0).toLocaleString("vi-VN")} VNĐ`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function formatStatus(value) {
+      const map = {
+        pending: "Chờ xử lý",
+        processing: "Đang xử lý",
+        completed: "Hoàn thành",
+        cancelled: "Đã hủy",
+        paid: "Đã thanh toán",
+        failed: "Thất bại"
+      };
+      return map[value] || value;
+    }
+
+    function getStatusBadgeClass(status) {
+      switch (status) {
+        case "completed":
+        case "paid":
+          return "bg-success text-white border-0";
+        case "pending":
+        case "processing":
+          return "bg-warning text-dark border-0";
+        case "cancelled":
+        case "failed":
+          return "bg-danger text-white border-0";
+        default:
+          return "bg-light text-dark";
+      }
+    }
+
+    function renderReviewForm(order) {
+      if (order.status !== "completed") {
+        return '<div class="small text-muted mt-4">Bạn có thể review sau khi đơn hàng hoàn thành.</div>';
+      }
+
+      return `
+        <div class="border-top pt-4 mt-4">
+          <h6 class="fw-black text-uppercase mb-3">Gửi Review</h6>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <select id="review-product-id" class="form-select">
+                ${order.items.map((item) => `<option value="${Number(item.product_id)}">${escapeHtml(item.name)}</option>`).join("")}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select id="review-rating" class="form-select">
+                <option value="5">5 sao</option>
+                <option value="4">4 sao</option>
+                <option value="3">3 sao</option>
+                <option value="2">2 sao</option>
+                <option value="1">1 sao</option>
+              </select>
+            </div>
+            <div class="col-md-12">
+              <textarea id="review-comment" class="form-control" rows="3" placeholder="Nhập nhận xét của bạn"></textarea>
+            </div>
+            <div class="col-md-12">
+              <button class="btn btn-black" onclick="submitReview()">Gửi Review</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadOrders() {
+      const user = getUser();
+
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const container = document.getElementById("order-list-container");
+
+      try {
+        const response = await apiFetch(`${API_BASE_URL}/orders`);
+
+        if (response.status === 401 || response.status === 403) {
+          clearSessionAndRedirectToLogin();
+          return;
+        }
+
+        let payload = null;
+        try {
+          payload = await response.json();
+        } catch {
+          payload = null;
+        }
+
+        if (!response.ok) {
+          const message = payload && payload.message
+            ? payload.message
+            : `Failed to fetch orders (${response.status})`;
+          throw new Error(message);
+        }
+
+        const orders = Array.isArray(payload) ? payload : [];
+        if (orders.length === 0) {
+          container.innerHTML = '<div class="text-center py-5 border">Bạn chưa có đơn hàng nào.</div>';
+          return;
+        }
+
+        container.innerHTML = orders.map((order) => `
+          <div class="card mb-4 border shadow-sm p-4 rounded-0 order-card">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+              <div>
+                <p class="small text-muted mb-1 text-uppercase">Mã đơn hàng</p>
+                <h6 class="fw-black mb-0">LMN-${String(order.id).padStart(5, "0")}</h6>
+              </div>
+              <div>
+                <p class="small text-muted mb-1 text-uppercase">Ngày đặt</p>
+                <h6 class="fw-bold mb-0">${new Date(order.created_at).toLocaleDateString("vi-VN")}</h6>
+              </div>
+              <div>
+                <p class="small text-muted mb-1 text-uppercase">Tổng tiền</p>
+                <h6 class="fw-black mb-0">${formatCurrency(order.total_amount)}</h6>
+              </div>
+              <div>
+                <p class="small text-muted mb-1 text-uppercase">Thanh toán</p>
+                <span class="badge ${getStatusBadgeClass(order.payment_status)} p-2">${formatStatus(order.payment_status)}</span>
+              </div>
+              <div>
+                <span class="badge ${getStatusBadgeClass(order.status)} p-2">${formatStatus(order.status)}</span>
+              </div>
+              <div>
+                <button class="btn btn-black px-4" onclick="viewOrderDetails(${order.id})">Xem chi tiết</button>
+              </div>
+            </div>
+          </div>
+        `).join("");
+      } catch (error) {
+        console.error("loadOrders error:", error);
+        container.innerHTML = `<div class="text-center py-5 text-danger font-weight-bold">Lỗi khi tải danh sách đơn hàng: ${error.message}</div>`;
+      }
+    }
+
+    async function viewOrderDetails(orderId) {
+      const content = document.getElementById("order-detail-content");
+      content.innerHTML = '<div class="text-center py-5"><div class="spinner-border"></div></div>';
+
+      const modal = new bootstrap.Modal(document.getElementById("orderDetailModal"));
+      modal.show();
+
+      try {
+        const response = await apiFetch(`${API_BASE_URL}/orders/${orderId}`);
+
+        if (response.status === 401 || response.status === 403) {
+          clearSessionAndRedirectToLogin();
+          return;
+        }
+
+        if (!response.ok) throw new Error("Order details failed to load");
+
+        const order = await response.json();
+        window.currentOrder = order;
+
+        content.innerHTML = `
+          <div class="row mb-5 mt-4">
+            <div class="col-6">
+              <p class="small text-muted mb-1 text-uppercase">Giao tới</p>
+              <p class="fw-bold mb-0">${escapeHtml(order.address)}</p>
+              <p class="small text-muted mb-0">SĐT: ${escapeHtml(order.phone)}</p>
+              <p class="small text-muted mb-0 mt-2">Coupon: ${escapeHtml(order.coupon_code || "Không dùng")}</p>
+            </div>
+            <div class="col-6 text-end">
+              <h5 class="fw-black text-uppercase text-primary">
+                <span class="badge ${getStatusBadgeClass(order.status)}">${formatStatus(order.status)}</span>
+              </h5>
+              <p class="small text-muted mb-0">
+                Thanh toán: <span class="badge ${getStatusBadgeClass(order.payment_status)}">${formatStatus(order.payment_status)}</span>
+              </p>
+              <p class="small text-muted mb-0">Giảm giá: ${formatCurrency(order.discount_amount)}</p>
+            </div>
+          </div>
+
+          <table class="table align-middle">
+            <thead>
+              <tr class="text-uppercase small">
+                <th class="border-0">Sản phẩm</th>
+                <th class="border-0 text-center">Đơn giá</th>
+                <th class="border-0 text-center">SL</th>
+                <th class="border-0 text-end">Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${order.items.map((item) => `
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-3">
+                      <img src="${escapeHtml(item.image_url)}" width="60" alt="${escapeHtml(item.name)}">
+                      <div class="d-flex flex-column">
+                        <span class="fw-bold fs-7">${escapeHtml(item.name)}</span>
+                        <span class="small text-muted">Size: ${escapeHtml(item.size)}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-center text-muted">${formatCurrency(item.price)}</td>
+                  <td class="text-center">${item.quantity}</td>
+                  <td class="text-end fw-black">${formatCurrency(item.price * item.quantity)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" class="text-end fw-bold py-2 text-uppercase">Tổng cộng:</td>
+                <td class="text-end fw-black fs-4 py-2">${formatCurrency(order.total_amount)}</td>
+              </tr>
+            </tfoot>
+          </table>
+          ${renderReviewForm(order)}
+        `;
+      } catch (error) {
+        content.innerHTML = '<div class="text-center py-5 text-danger font-weight-bold">Không thể tải chi tiết đơn hàng.</div>';
+      }
+    }
+
+    async function submitReview() {
+      const productId = Number(document.getElementById("review-product-id").value);
+      const rating = Number(document.getElementById("review-rating").value);
+      const comment = document.getElementById("review-comment").value.trim();
+
+      try {
+        const response = await apiFetch(`${API_BASE_URL}/reviews`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ productId, rating, comment })
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          clearSessionAndRedirectToLogin();
+          return;
+        }
+
+        const result = await response.json();
+        if (!response.ok) {
+          alert(result.message || "Không thể gửi review.");
+          return;
+        }
+
+        alert("Gửi review thành công.");
+      } catch (error) {
+        alert("Không thể kết nối server.");
+      }
+    }
+
+    async function cancelPendingPayosOrder(orderId) {
+      if (!orderId || orderId <= 0) {
+        return false;
+      }
+
+      try {
+        const response = await apiFetch(`${API_BASE_URL}/orders/${orderId}/cancel-payment`, {
+          method: "POST"
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          clearSessionAndRedirectToLogin();
+          return false;
+        }
+
+        if (response.ok) {
+          return true;
+        }
+
+        if (response.status === 404 || response.status === 409) {
+          return false;
+        }
+
+        return false;
+      } catch {
+        return false;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const status = (urlParams.get("status") || "").toUpperCase();
+      const isCancelled = urlParams.get("cancel") === "true" || status === "CANCELLED";
+      const isSuccess = status === "SUCCESS" || status === "PAID";
+      const orderCode = urlParams.get("orderCode");
+
+      // Xóa query params khỏi URL ngay lập tức
+      const cleanUrl = new URL(window.location);
+      cleanUrl.search = "";
+      window.history.replaceState({}, document.title, cleanUrl);
+
+      if (isSuccess) {
+        localStorage.removeItem("lmn_cart");
+
+        alert("✅ Thanh toán thành công! Cảm ơn bạn đã mua sắm tại LMN.");
+      } else if (isCancelled) {
+        // Kiểm tra xem đơn hàng đã được thanh toán qua webhook chưa
+        // (trường hợp PayOS gọi webhook trước khi redirect)
+        if (orderCode) {
+          try {
+            // orderCode của PayOS = orderId * 1000000 + suffix → lấy orderId
+            const orderId = Math.floor(Number(orderCode) / 1000000);
+            if (orderId > 0) {
+              const resp = await apiFetch(`${API_BASE_URL}/orders/${orderId}`);
+              if (resp.ok) {
+                const order = await resp.json();
+                if (order.payment_status === "paid") {
+                  // Webhook đã xử lý thành công trước đó → thực ra đã thanh toán
+                  localStorage.removeItem("lmn_cart");
+                  alert("✅ Thanh toán đã được xác nhận thành công!");
+                } else {
+                  await cancelPendingPayosOrder(orderId);
+                  alert("❌ Thanh toán đã bị hủy. Đơn hàng tạm đã được xóa.");
+                }
+              } else {
+                alert("❌ Thanh toán đã bị hủy. Bạn có thể thử lại sau.");
+              }
+            } else {
+              alert("❌ Thanh toán đã bị hủy. Bạn có thể thử lại sau.");
+            }
+          } catch {
+            alert("❌ Thanh toán đã bị hủy. Bạn có thể thử lại sau.");
+          }
+        } else {
+          alert("❌ Thanh toán đã bị hủy. Bạn có thể thử lại sau.");
+        }
+      }
+
+      loadOrders();
+    });
+    window.viewOrderDetails = viewOrderDetails;
+    window.submitReview = submitReview;
+  </script>
+</body>
+
+</html>

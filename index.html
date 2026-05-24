@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LMN FASHION | Thời Trang Nam Tối Giản</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <div class="bg-texture"></div>
+
+  <nav class="navbar navbar-expand-lg navbar-light sticky-top bg-white">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">LMN</a>
+      <button class="navbar-toggler outline-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="bi bi-list fs-2"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mx-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Trang Chủ</a></li>
+          <li class="nav-item"><a class="nav-link" href="products.html">Sản Phẩm</a></li>
+        </ul>
+        <div class="d-flex align-items-center gap-3 ms-auto mt-3 mt-lg-0">
+          <div class="position-relative d-none d-md-block">
+            <input type="text" class="form-control form-control-sm border-dark rounded-pill ps-3 pe-4" placeholder="Tìm kiếm..." id="search-input" style="width: 180px; font-size: 0.9rem;">
+            <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-2 text-muted" style="cursor: pointer;" id="search-btn"></i>
+          </div>
+          <a href="cart.html" class="nav-link p-0 position-relative" title="Giỏ Hàng">
+            <i class="bi bi-bag fs-5"></i>
+            <span id="cart-count" class="position-absolute translate-middle-y translate-middle-x badge rounded-pill bg-black text-white p-1" style="font-size: 0.6rem; top: 0;">0</span>
+          </a>
+          <a href="orders.html" class="nav-link p-0 d-none" id="order-link-btn" title="Đơn Hàng"><i class="bi bi-box fs-5"></i></a>
+          <a href="login.html" class="nav-link p-0" title="Tài khoản"><i class="bi bi-person fs-5"></i></a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero-section">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-12">
+          <h1 class="reveal">Tối Giản<br>Đậm Chất Nam Tính</h1>
+          <p class="subtitle mt-3 reveal">Phong cách tinh tế, dành cho người đàn ông hiện đại. Sự tỉ mỉ trong từng đường kim, mũi chỉ hòa quyện cùng thiết kế đương đại.</p>
+          <div class="d-flex justify-content-center gap-3 mt-5 reveal">
+            <a href="products.html" class="btn btn-black px-5">Khám Phá Ngay</a>
+            <a href="#" class="btn btn-outline-black px-5">Xem Lookbook</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section id="shop" class="py-5">
+    <div class="container py-5">
+      <div class="mb-5 text-center reveal">
+        <h2 class="fw-black text-uppercase letter-spacing-5">Sản Phẩm </h2>
+        <p class="text-muted"></p>
+      </div>
+
+      <div id="product-container" class="row g-4 reveal">
+        <div class="col-12 text-center py-5">
+          <div class="spinner-border text-dark" role="status">
+            <span class="visually-hidden">Dang tai...</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="pagination-container" class="pagination-container reveal"></div>
+
+      <div class="text-center mt-4 reveal">
+        <a href="products.html" class="btn btn-outline-black px-5">Xem Tất Cả Sản Phẩm</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="parallax-container reveal">
+      <div class="parallax-overlay"></div>
+      <div class="container position-relative z-index-2 text-white text-center">
+          <h2 class="fw-black text-uppercase letter-spacing-5 mb-4">Phong Cách Là Sự Khẳng Định</h2>
+          <p class="lead fw-light">Đơn giản chính là sự tinh tế cuối cùng.</p>
+      </div>
+  </section>
+
+  <section class="py-5 bg-white reveal">
+      <div class="container py-5 border-top">
+          <div class="row text-center g-4">
+              <div class="col-md-4">
+                  <i class="bi bi-truck fs-1 mb-3"></i>
+                  <h6 class="fw-bold text-uppercase">Giao Hàng Miễn Phí</h6>
+                  <p class="small text-muted">Cho mọi đơn hàng trên toàn quốc.</p>
+              </div>
+              <div class="col-md-4">
+                  <i class="bi bi-arrow-repeat fs-1 mb-3"></i>
+                  <h6 class="fw-bold text-uppercase">Đổi Trả 30 Ngày</h6>
+                  <p class="small text-muted">Hỗ trợ đổi trả cực nhanh</p>
+              </div>
+              <div class="col-md-4">
+                  <i class="bi bi-shield-check fs-1 mb-3"></i>
+                  <h6 class="fw-bold text-uppercase">Bảo Hành Trọn Đời</h6>
+                  <p class="small text-muted">Chất lượng sợi vải cao cấp</p>
+              </div>
+          </div>
+      </div>
+  </section>
+
+  <div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content shadow-lg border-0">
+        <div class="modal-body p-0">
+          <button type="button" class="btn-close position-absolute end-0 top-0 m-3 z-index-3" data-bs-dismiss="modal" aria-label="Close"></button>
+          <div class="row g-0">
+            <div class="col-lg-6">
+              <img id="modal-product-image" src="" class="img-fluid w-100 h-100 object-fit-cover" style="max-height: 80vh;" alt="Product Image">
+            </div>
+            <div class="col-lg-6 p-5 d-flex flex-column justify-content-center">
+               <h2 id="modal-product-name" class="fw-black text-uppercase mb-3 fs-1 letter-spacing-5">Product Name</h2>
+               <p id="modal-product-price" class="fs-4 fw-light text-muted mb-4">Price</p>
+               <div class="border-top border-bottom py-4 mb-4">
+                 <p id="modal-product-desc" class="text-muted lh-lg mb-0 font-weight-300">Detailed description here.</p>
+               </div>
+               <div class="mb-4">
+                 <h6 class="fw-black text-uppercase mb-3">Chọn Size</h6>
+                 <div id="modal-product-sizes" class="d-flex flex-wrap gap-2">
+                   <!-- Sizes will be rendered here -->
+                 </div>
+                 <input type="hidden" id="selected-size" value="">
+               </div>
+               <div class="mb-4">
+                 <h6 class="fw-black text-uppercase mb-3">Số Lượng</h6>
+                 <div class="d-flex align-items-center gap-3">
+                   <button class="btn btn-outline-black py-2 px-3" onclick="updateModalQty(-1)">-</button>
+                   <span id="modal-qty" class="fs-5 fw-bold">1</span>
+                   <button class="btn btn-outline-black py-2 px-3" onclick="updateModalQty(1)">+</button>
+                 </div>
+               </div>
+               <div class="mb-4">
+                 <h6 class="fw-black text-uppercase mb-3">Review</h6>
+                 <div id="modal-product-reviews" class="review-list"></div>
+               </div>
+               <div class="d-grid gap-2">
+                 <button id="add-to-cart-modal-btn" class="btn btn-black py-3">Thêm Vào Giỏ Hàng</button>
+                 <button class="btn btn-outline-black py-3" data-bs-dismiss="modal">Tro Lai</button>
+               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="row g-5">
+        <div class="col-lg-4">
+          <a class="navbar-brand mb-4 d-block" href="#">LMN</a>
+          <p class="small text-muted mb-4">Những món đồ thiết yếu vượt thời gian, được thiết kế tỉ mỉ tại Việt Nam. Chúng tôi tin vào chất lượng, thay vì số lượng.</p>
+          <div class="d-flex gap-4">
+            <a href="#" class="text-black"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="text-black"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="text-black"><i class="bi bi-pinterest"></i></a>
+          </div>
+        </div>
+        <div class="col-lg-2 offset-lg-2">
+          <h6>Dịch Vụ</h6>
+          <ul class="list-unstyled d-flex flex-column gap-2 small">
+            <li><a href="#">Liên Hệ</a></li>
+            <li><a href="#">Giao Hàng & Đổi Trả</a></li>
+            <li><a href="#">Chọn Size</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2">
+          <h6>Pháp Lý</h6>
+          <ul class="list-unstyled d-flex flex-column gap-2 small">
+            <li><a href="#">Chính Sách</a></li>
+            <li><a href="#">Điều Khoản</a></li>
+            <li><a href="#">Cookies</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2">
+          <h6>Liên Hệ</h6>
+          <p class="small text-muted">Hà Nội, Việt Nam<br>support@lmnfashion.com</p>
+        </div>
+      </div>
+
+      <div class="border-top mt-5 pt-5 text-center text-muted small">
+        &copy; 2026 LMN FASHION. Minimalist Essence Since 2024.
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/app.js"></script>
+
+
+  <script>
+      const revealElements = document.querySelectorAll(".reveal");
+      const revealOnScroll = () => {
+          revealElements.forEach((el) => {
+              const rect = el.getBoundingClientRect();
+              const isVisible = rect.top < window.innerHeight - 100;
+              if (isVisible) el.classList.add("active");
+          });
+      };
+      window.addEventListener("scroll", revealOnScroll);
+      window.addEventListener("load", revealOnScroll);
+
+      // Xử lý thông báo từ PayOS khi bị hủy
+      document.addEventListener("DOMContentLoaded", () => {
+          const urlParams = new URLSearchParams(window.location.search);
+          const status = (urlParams.get("status") || "").toUpperCase();
+          const isCancelled = urlParams.get("cancel") === "true" || status === "CANCELLED";
+
+          if (isCancelled) {
+              alert("❌ Thanh toán đã bị hủy. Bạn có thể tiếp tục mua sắm.");
+              // Xóa query params để URL sạch
+              const cleanUrl = new URL(window.location);
+              cleanUrl.search = "";
+              window.history.replaceState({}, document.title, cleanUrl);
+          }
+      });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8">
+  <title>LMN | Quản Trị Hệ Thống</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .sidebar {
+      width: 250px;
+      height: 100vh;
+      position: fixed;
+      background: #1a1a1a;
+      color: white;
+      padding-top: 2rem;
+    }
+
+    .sidebar a {
+      color: #aaa;
+      text-decoration: none;
+      padding: 1rem 1.5rem;
+      display: block;
+      font-weight: 500;
+      transition: 0.3s;
+      cursor: pointer;
+    }
+
+    .sidebar a:hover,
+    .sidebar a.active {
+      background: #333;
+      color: #fff;
+      border-left: 4px solid #fff;
+    }
+
+    .main-content {
+      margin-left: 250px;
+      padding: 2rem;
+    }
+
+    .card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .table-container {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      overflow-x: auto;
+    }
+
+    th {
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      color: #666;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #eee;
+    }
+
+    td {
+      vertical-align: middle;
+      border-bottom: 1px solid #eee;
+    }
+
+    .btn-black {
+      background-color: #000;
+      color: #fff;
+      border-radius: 8px;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+    }
+
+    .btn-black:hover {
+      background-color: #333;
+      color: #fff;
+    }
+
+    .badge {
+      padding: 0.5em 0.8em;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .bg-pending {
+      background-color: #ffc107;
+      color: #000;
+    }
+
+    .bg-processing {
+      background-color: #17a2b8;
+      color: #fff;
+    }
+
+    .bg-completed,
+    .bg-paid {
+      background-color: #28a745;
+      color: #fff;
+    }
+
+    .bg-cancelled,
+    .bg-failed {
+      background-color: #dc3545;
+      color: #fff;
+    }
+
+    .status-active {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-inactive {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+
+    
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <h3 class="text-center fw-black mb-4 letter-spacing-5 px-3">LMN ADMIN</h3>
+    <div class="px-3 text-muted small mb-4">Hệ thống quản trị viên</div>
+
+    <nav>
+      <a class="nav-btn active" data-target="dashboard"><i class="bi bi-speedometer2 me-2"></i> Tổng Quan</a>
+      <a class="nav-btn" data-target="users"><i class="bi bi-people me-2"></i> Người Dùng</a>
+      <a class="nav-btn" data-target="products"><i class="bi bi-box-seam me-2"></i> Sản Phẩm</a>
+      <a class="nav-btn" data-target="orders"><i class="bi bi-receipt me-2"></i> Đơn Hàng</a>
+      <a class="nav-btn" data-target="coupons"><i class="bi bi-ticket-perforated me-2"></i> Mã Giảm Giá</a>
+      <a class="nav-btn" data-target="inventory"><i class="bi bi-clipboard-data me-2"></i> Tồn Kho</a>
+      
+    </nav>
+
+    <a onclick="logout()" class="text-danger mt-5 px-4 d-block"><i class="bi bi-box-arrow-left me-2"></i> Đăng Xuất</a>
+  </div>
+
+  <div class="main-content">
+    <!-- DASHBOARD -->
+    <div id="tab-dashboard" class="tab-pane">
+      <h2 class="fw-bold mb-4">Tổng Quan Hệ Thống</h2>
+      <div class="row g-4 mb-4">
+        <div class="col-md-4">
+          <div class="card p-4 text-center">
+            <h5 class="text-muted text-uppercase small">Người Dùng</h5>
+            <h2 class="fw-black mb-0" id="stat-users">...</h2>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-4 text-center">
+            <h5 class="text-muted text-uppercase small">Sản Phẩm</h5>
+            <h2 class="fw-black mb-0" id="stat-products">...</h2>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-4 text-center">
+            <h5 class="text-muted text-uppercase small">Đơn Hàng</h5>
+            <h2 class="fw-black mb-0" id="stat-orders">...</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div id="tab-users" class="tab-pane d-none">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Quản Lý Người Dùng</h2>
+        <input type="search" id="admin-search-users" class="form-control form-control-sm" style="max-width: 280px;" placeholder="Tìm người dùng...">
+      </div>
+      <div class="table-container">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Họ Tên</th>
+              <th>Vai Trò</th>
+              <th>Trạng Thái</th>
+              <th class="text-end">Hành Động</th>
+            </tr>
+          </thead>
+          <tbody id="users-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div id="tab-products" class="tab-pane d-none">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Quản Lý Sản Phẩm</h2>
+        <div class="d-flex gap-2">
+          <input type="search" id="admin-search-products" class="form-control form-control-sm" style="width: 260px;" placeholder="Tìm sản phẩm...">
+          <button class="btn btn-black" onclick="openAddProductModal()"><i class="bi bi-plus-lg me-2"></i> Thêm Sản
+            Phẩm</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Ảnh</th>
+              <th>Tên Sản Phẩm</th>
+              <th>Giá</th>
+              <th>Kho</th>
+              <th>Danh Mục</th>
+              <th class="text-end">Hành Động</th>
+            </tr>
+          </thead>
+          <tbody id="products-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div id="tab-orders" class="tab-pane d-none">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Quản Lý Đơn Hàng</h2>
+        <input type="search" id="admin-search-orders" class="form-control form-control-sm" style="max-width: 280px;" placeholder="Tìm mã đơn, SĐT, địa chỉ...">
+      </div>
+      <div class="table-container">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Mã Đơn</th>
+              <th>SĐT</th>
+              <th>Địa Chỉ</th>
+              <th>Tổng Tiền</th>
+              <th>Thanh Toán</th>
+              <th>TT Thanh Toán</th>
+              <th>TT Đơn</th>
+              <th class="text-end">Hành Động</th>
+            </tr>
+          </thead>
+          <tbody id="orders-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- COUPONS -->
+    <div id="tab-coupons" class="tab-pane d-none">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Quản Lý Mã Giảm Giá</h2>
+        <div class="d-flex gap-2">
+          <input type="search" id="admin-search-coupons" class="form-control form-control-sm" style="width: 260px;" placeholder="Tìm mã giảm giá...">
+          <button class="btn btn-black" onclick="openAddCouponModal()"><i class="bi bi-plus-lg me-2"></i> Thêm Mã</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Mã</th>
+              <th>Loại</th>
+              <th>Giá Trị</th>
+              <th>Đơn Tối Thiểu</th>
+              <th>Lượt Dùng</th>
+              <th>Hết Hạn</th>
+              <th>Trạng Thái</th>
+              <th class="text-end">Hành Động</th>
+            </tr>
+          </thead>
+          <tbody id="coupons-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div id="tab-inventory" class="tab-pane d-none">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Quản Lý Tồn Kho</h2>
+        <input type="search" id="admin-search-inventory" class="form-control form-control-sm" style="max-width: 280px;" placeholder="Tìm sản phẩm...">
+      </div>
+      <div class="row g-4">
+        <div class="col-lg-7">
+          <div class="table-container h-100">
+            <h5 class="fw-bold mb-3">Sản Phẩm Trong Kho</h5>
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Sản Phẩm</th>
+                  <th>Kho</th>
+                  <th>Giá</th>
+                  <th class="text-end">Hành Động</th>
+                </tr>
+              </thead>
+              <tbody id="inventory-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <div class="table-container h-100">
+            <h5 class="fw-bold mb-3">Lịch Sử Kho</h5>
+            <div class="overflow-auto" style="max-height: 520px;">
+              <table class="table table-sm table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>Sản Phẩm</th>
+                    <th>Thay Đổi</th>
+                    <th>Lý Do</th>
+                  </tr>
+                </thead>
+                <tbody id="inventory-logs-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+  </div>
+
+  <!-- MODAL SẢN PHẨM -->
+  <div class="modal fade" id="productModal" tabindex="-1">
+    <div class="modal-dialog modal-lg border-0 shadow-lg">
+      <div class="modal-content border-0">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-black text-uppercase" id="productModalTitle">Thêm Sản Phẩm</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="productForm">
+            <input type="hidden" id="p-id">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-bold text-uppercase">Tên Sản Phẩm</label>
+                <input type="text" id="p-name" class="form-control" placeholder="Tên sản phẩm..." required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold text-uppercase">Giá (VNĐ)</label>
+                <input type="number" id="p-price" class="form-control" placeholder="Giá..." required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold text-uppercase">Tồn Kho</label>
+                <input type="number" id="p-stock" class="form-control" placeholder="Số lượng trong kho..." required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold text-uppercase">Danh Sách Size (Cách nhau bằng dấu phẩy)</label>
+                <input type="text" id="p-sizes" class="form-control" placeholder="VD: S,M,L,XL hoặc 36,37,38" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold text-uppercase">Mã Danh Mục (ID)</label>
+                <input type="number" id="p-category" class="form-control" placeholder="ID danh mục..." required>
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-bold text-uppercase">URL Hình Ảnh</label>
+                <input type="text" id="p-image" class="form-control" placeholder="Link ảnh..." required>
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-bold text-uppercase">Mô Tả</label>
+                <textarea id="p-desc" class="form-control" rows="3" placeholder="Mô tả chi tiết sản phẩm..."></textarea>
+              </div>
+            </div>
+            <div class="mt-4">
+              <button type="submit" class="btn btn-black w-100 py-3 text-uppercase fw-bold letter-spacing-1">Lưu Sản
+                Phẩm</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL NGƯỜI DÙNG (CẬP NHẬT) -->
+  <div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog border-0">
+      <div class="modal-content border-0">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-black text-uppercase">Cập Nhật Người Dùng</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="userForm">
+            <input type="hidden" id="u-id">
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Username</label>
+              <input type="text" id="u-username" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Email</label>
+              <input type="email" id="u-email" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Họ Tên</label>
+              <input type="text" id="u-name" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Số Điện Thoại</label>
+              <input type="text" id="u-phone" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Địa Chỉ</label>
+              <input type="text" id="u-address" class="form-control">
+            </div>
+            <div class="row g-3">
+              <div class="col-6">
+                <label class="form-label small fw-bold">Vai Trò</label>
+                <select id="u-role" class="form-select">
+                  <option value="customer">Customer</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-bold">Trạng Thái</label>
+                <select id="u-status" class="form-select">
+                  <option value="active">Hoạt động</option>
+                  <option value="inactive">Đã khóa</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-4">
+              <button type="submit" class="btn btn-black w-100 py-3">LƯU THÔNG TIN</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CHI TIẾT ĐƠN HÀNG -->
+  <div class="modal fade" id="orderDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg border-0">
+      <div class="modal-content border-0">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-black text-uppercase">Chi Tiết Đơn Hàng</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="order-detail-body">
+          <div class="text-center text-muted py-4">Đang tải đơn hàng...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL MÃ GIẢM GIÁ -->
+  <div class="modal fade" id="couponModal" tabindex="-1">
+    <div class="modal-dialog border-0">
+      <div class="modal-content border-0">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-black text-uppercase" id="couponModalTitle">Thêm Mã Giảm Giá</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="couponForm">
+            <input type="hidden" id="c-id">
+            <div class="mb-3">
+              <label class="form-label small fw-bold text-uppercase">Mã</label>
+              <input type="text" id="c-code" class="form-control text-uppercase" placeholder="VD: LMN10" required>
+            </div>
+            <div class="row g-3">
+              <div class="col-6">
+                <label class="form-label small fw-bold text-uppercase">Loại</label>
+                <select id="c-type" class="form-select">
+                  <option value="percent">Phần trăm</option>
+                  <option value="fixed">Số tiền</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-bold text-uppercase">Giá Trị</label>
+                <input type="number" id="c-value" class="form-control" min="1" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-bold text-uppercase">Đơn Tối Thiểu</label>
+                <input type="number" id="c-min" class="form-control" min="0" value="0">
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-bold text-uppercase">Giới Hạn Lượt</label>
+                <input type="number" id="c-limit" class="form-control" min="0" placeholder="Không giới hạn">
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-bold text-uppercase">Hết Hạn</label>
+                <input type="date" id="c-expires" class="form-control">
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-bold text-uppercase">Trạng Thái</label>
+                <select id="c-active" class="form-select">
+                  <option value="true">Đang bật</option>
+                  <option value="false">Đã tắt</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-4">
+              <button type="submit" class="btn btn-black w-100 py-3 text-uppercase fw-bold">Lưu Mã Giảm Giá</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+
+</html>
