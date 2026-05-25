@@ -59,6 +59,7 @@ window.formatCurrency = formatCurrency;
 
 let productsData = [];
 window.cart = JSON.parse(localStorage.getItem("lmn_cart")) || [];
+let modalCurrentProductId = null;
 let currentPage = 1;
 const pageName = window.location.pathname.split("/").pop() || "index.html";
 const isCatalogPage = pageName === "products.html";
@@ -119,7 +120,7 @@ function checkAuthUI() {
     // Redirect admin to admin dashboard if they are on a regular user page
     const currentPage = window.location.pathname.split("/").pop() || "index.html";
     const userPages = ["index.html", "products.html", "cart.html", "orders.html", "profile.html", "login.html", "register.html"];
-    
+
     if (user.role === "admin" && userPages.includes(currentPage)) {
         window.location.href = "admin.html";
         return;
@@ -407,6 +408,9 @@ function openDetails(productId) {
     const product = productsData.find((p) => p.id === productId);
     if (!product) return;
 
+    // Set current modal product id (may change when user switches color)
+    modalCurrentProductId = product.id;
+
     document.getElementById("modal-product-image").src = product.image_url;
     document.getElementById("modal-product-name").innerText = product.name;
     document.getElementById("modal-product-price").innerText = formatCurrency(product.price);
@@ -435,14 +439,132 @@ function openDetails(productId) {
             return;
         }
         const qty = parseInt(document.getElementById("modal-qty").innerText) || 1;
-        addToCart(product.id, size, qty);
+        // Use the currently selected variant id when adding to cart
+        addToCart(modalCurrentProductId || product.id, size, qty);
         const modalEl = document.getElementById("productModal");
         bootstrap.Modal.getInstance(modalEl).hide();
     };
-
-    loadProductReviews(product.id);
+    // Render color variants (if any) and load reviews for the currently selected variant
+    renderProductColorVariants(product);
+    loadProductReviews(modalCurrentProductId || product.id);
     new bootstrap.Modal(document.getElementById("productModal")).show();
 }
+
+function removeDiacritics(str) {
+    if (!str) return "";
+    // Normalize and strip combining diacritical marks (U+0300 - U+036F)
+    return str.normalize ? str.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : str;
+}
+
+function normalizeText(str) {
+    return removeDiacritics(String(str || '')).toLowerCase().trim();
+}
+
+function extractBaseName(name) {
+    const n = normalizeText(name);
+    const mauIdx = n.indexOf(' mau');
+    if (mauIdx !== -1) return n.slice(0, mauIdx).trim();
+    const words = n.split(/\s+/);
+    const last = words[words.length - 1];
+    const colorNames = ['den', 'xam', 'nau', 'hong', 'trang', 'do', 'xanh', 'be', 'den'];
+    if (colorNames.includes(last)) return words.slice(0, -1).join(' ');
+    return words.slice(0, 3).join(' ');
+}
+
+function extractColorLabel(name) {
+    const n = normalizeText(name);
+    const mauIdx = n.indexOf(' mau');
+    if (mauIdx !== -1) return n.slice(mauIdx + 4).trim();
+    const words = n.split(/\s+/);
+    return words[words.length - 1];
+}
+
+function mapColorToCss(colorLabel) {
+    if (!colorLabel) return null;
+    const map = {
+        den: '#000000',
+        "đen": '#000000',
+        xam: '#8a8a8a',
+        "xám": '#8a8a8a',
+        trang: '#ffffff',
+        "trang": '#ffffff',
+        nau: '#8b5a2b',
+        "nâu": '#8b5a2b',
+        hong: '#ff77b0',
+        "hồng": '#ff77b0',
+        do: '#b30000',
+        "đỏ": '#b30000',
+        xanh: '#1e90ff',
+        be: '#f5e0c7'
+    };
+    return map[colorLabel] || null;
+}
+
+function getVariantsForProduct(product) {
+    const base = extractBaseName(product.name);
+    if (!base) return [product];
+    const variants = productsData.filter(p => {
+        const np = normalizeText(p.name);
+        return np.includes(base) || base.includes(np) || np.startsWith(base) || base.startsWith(np);
+    });
+    // Deduplicate and ensure original first
+    const unique = [];
+    const seen = new Set();
+    // Put original product first
+    if (!seen.has(product.id)) { unique.push(product); seen.add(product.id); }
+    for (const v of variants) {
+        if (!seen.has(v.id)) { unique.push(v); seen.add(v.id); }
+    }
+    return unique;
+}
+
+function renderProductColorVariants(product) {
+    const container = document.getElementById('modal-product-colors');
+    if (!container) return;
+    const variants = getVariantsForProduct(product);
+    if (!variants || variants.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    const html = variants.map(v => {
+        const colorLabel = extractColorLabel(v.name) || v.name;
+        const cssColor = mapColorToCss(colorLabel);
+        const style = cssColor ? `background:${cssColor};` : `background-image:url('${escapeHtml(v.image_url)}'); background-size:cover; background-position:center;`;
+        return `<div class="color-swatch" data-variant-id="${Number(v.id)}" title="${escapeHtml(colorLabel)}" onclick="switchVariant(${Number(v.id)}, this)" style="${style}"></div>`;
+    }).join('');
+
+    container.innerHTML = html;
+    // mark active swatch
+    const activeEl = container.querySelector(`[data-variant-id='${product.id}']`);
+    if (activeEl) activeEl.classList.add('active');
+}
+
+window.switchVariant = function (variantId, el) {
+    const v = productsData.find(p => Number(p.id) === Number(variantId));
+    if (!v) return;
+    modalCurrentProductId = Number(variantId);
+    document.getElementById('modal-product-image').src = v.image_url;
+    document.getElementById('modal-product-name').innerText = v.name;
+    document.getElementById('modal-product-price').innerText = formatCurrency(v.price);
+    document.getElementById('modal-product-desc').innerText = v.description;
+
+    // update sizes for variant
+    const sizesContainer = document.getElementById('modal-product-sizes');
+    const selectedSizeInput = document.getElementById('selected-size');
+    selectedSizeInput.value = '';
+    const sizes = (v.sizes || 'S,M,L,XL').split(',');
+    sizesContainer.innerHTML = sizes.map(size => {
+        const s = size.trim();
+        return `<div class="size-btn" onclick="selectSize(this, '${escapeJsString(s)}')">${escapeHtml(s)}</div>`;
+    }).join('');
+
+    // update active swatch
+    try {
+        document.querySelectorAll('.color-swatch').forEach(b => b.classList.remove('active'));
+        if (el) el.classList.add('active');
+    } catch (e) { }
+};
 
 function updateModalQty(delta) {
     const qtyEl = document.getElementById("modal-qty");
@@ -469,7 +591,7 @@ function addToCart(productId, size = null, qty = 1) {
     }
 
     const existingItem = window.cart.find((item) => item.id === productId && item.size === size);
-    
+
     if (existingItem) {
         existingItem.quantity += qty;
     } else {

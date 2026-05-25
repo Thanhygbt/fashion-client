@@ -477,6 +477,26 @@ footer a:hover {
   cursor: pointer;
 }
 
+.color-swatch {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.color-swatch:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+.color-swatch.active {
+  outline: 2px solid #111;
+  transform: translateY(-3px);
+}
+
 .size-btn:hover {
   border-color: black;
   transform: translateY(-2px);
