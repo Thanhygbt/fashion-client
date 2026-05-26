@@ -1,18 +1,11 @@
 function resolveApiBaseUrl() {
-    const { protocol, hostname, origin } = window.location;
-    const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
-    const isFileProtocol = protocol === "file:";
-    const configuredBaseUrl = typeof __API_BASE_URL__ === "string" ? __API_BASE_URL__.trim() : "";
+    const isLocalhost =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
 
-    if (configuredBaseUrl) {
-        return configuredBaseUrl.replace(/\/$/, "");
-    }
-
-    if (isFileProtocol || isLocalhost) {
-        return "http://localhost:3000";
-    }
-
-    return origin.replace(/\/$/, "");
+    return isLocalhost
+        ? "http://localhost:3000"
+        : "https://lmnfashion.onrender.com";
 }
 
 const API_BASE_URL = resolveApiBaseUrl();
