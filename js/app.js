@@ -649,7 +649,7 @@ function initFormHandlers() {
             }
 
             sendOtpBtn.disabled = true;
-            sendOtpBtn.innerText = "Đang gửi...";
+            sendOtpBtn.innerText = "Đã gửi";
 
             try {
                 const response = await apiFetch(`${API_BASE_URL}/send-otp`, {
